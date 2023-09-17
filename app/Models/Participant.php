@@ -13,6 +13,8 @@ class Participant extends Model
 
     protected $table = "participant";
     protected $primaryKey = "id";
+    protected $guarded = [];
+    public $timestamps = false;
 
     public function getFullNameAttribute(): string
     {

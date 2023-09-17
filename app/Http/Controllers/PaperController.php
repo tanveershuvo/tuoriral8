@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Requests\SubmissionEditRequest;
 use App\Models\Paper;
 use App\Models\Paper_review;
+use App\Models\Participant;
 use App\Models\SubmissionType;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class PaperController extends Controller
 {
@@ -27,7 +29,9 @@ class PaperController extends Controller
      */
     public function create()
     {
-        //
+        $submission_types = SubmissionType::all('id','type');
+
+        return view('addPaper',['submissionTypes'=>$submission_types]);
     }
 
     /**
@@ -35,7 +39,80 @@ class PaperController extends Controller
      */
     public function store(Request $request)
     {
-        //
+
+
+        if($request->title === null){
+            $validator = Validator::make($request->all(), [
+                'author' => 'required|string|max:255',
+                'affiliate' => 'required|string|max:10',
+                'email' => 'required|email',
+                // Add more validation rules as needed
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $email = $request->input('email');
+            $author = $request->input('author');
+            $affiliate = $request->input('affiliate');
+
+            $participant = Participant::where('email', $email)->first();
+
+            if ($participant) {
+                $paperSubmission = Paper::where('author_id', $participant->id)->first();
+
+                if ($paperSubmission) {
+                    $Paper = Paper::where('author_id',$participant->id)->first();
+                    return response()->json(['data' => $Paper], 200);
+                } else {
+                    return response()->json(['data' => ''], 200);
+                }
+            } else {
+                $names = explode(' ', $author);
+                $newRecord = Participant::create([
+                    'first_name' => $names[0],
+                    'last_name' => $names[1] ?? '',
+                    'email' => $email,
+                    'Affiliation' => $affiliate,
+                    'password' => 'sample',
+                    'is_active' => 'active',
+                    'conference_id' => 1
+                ]);
+
+                $lastInsertedId = $newRecord->id;
+
+                return response()->json(['data' => $lastInsertedId], 200);
+            }
+        }else{
+
+            $validator = Validator::make($request->all(), [
+                'title' => 'required|string|max:100',
+                'abstract' => 'required|string|max:255',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $email = $request->input('email');
+            $title = $request->input('title');
+            $abstract = $request->input('abstract');
+
+            $author_id = Participant::where('email',$email)->first('id');
+            Paper::create([
+                'author_id'=>$author_id->id,
+                'submission_type_id'=>1,
+                'paper_title'=> $title,
+                'abstract'=> $abstract,
+                'is_accepted'=>0
+            ]);
+            session()->flash('success', 'Record added successfully');
+            return response()->json(['data' => route('submission.index')], 200);
+        }
+
+
+
     }
 
     /**

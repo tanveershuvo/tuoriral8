@@ -15,7 +15,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 
-//Route::get('/', [PaperController::class, 'index']);
+Route::get('/', function () {
+    return view('home');
+})->name('index');
+Route::get('/details', function () {
+    return view('details');
+})->name('details');
+
 Route::resource('submission', PaperController::class);
-Route::get('/', [PaperController::class, 'index']);
 Route::get('submission/reviewer/{id}', [PaperController::class, 'reviewer'])->name('getReviewer');

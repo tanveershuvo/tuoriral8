@@ -15,6 +15,7 @@ class Paper extends Model
     protected $table = 'Paper';
     protected $primaryKey = 'id';
     public $timestamps = false;
+    public $guarded = [];
 
     public function authors(): BelongsTo
     {

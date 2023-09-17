@@ -8,11 +8,9 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav">
+                    <a class="nav-link {{ request()->routeIs('index') ? 'active' : '' }}" aria-current="page" href="{{ url('/') }}">Home</a>
+                    <a class="nav-link {{ request()->routeIs('details') ? 'active' : '' }}" aria-current="page" href="{{ url('/details') }}">details</a>
                     <a class="nav-link {{ request()->routeIs('submission.index') ? 'active' : '' }}" aria-current="page" href="{{ route('submission.index') }}">Submission</a>
-                    <a class="nav-link" data-bs-toggle="modal" data-bs-target="#regModal" href="#" tabindex="-1"
-                       aria-disabled="true">Registration</a>
-                    <a class="nav-link " data-bs-toggle="modal" data-bs-target="#loginModal" href="#" tabindex="-1"
-                       aria-disabled="true">Login</a>
                 </div>
             </div>
         </div>
