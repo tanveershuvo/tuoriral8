@@ -40,13 +40,11 @@ class PaperController extends Controller
     public function store(Request $request)
     {
 
-
-        if($request->title === null){
+        if($request->lastInsertedUser === null){
             $validator = Validator::make($request->all(), [
                 'author' => 'required|string|max:255',
                 'affiliate' => 'required|string|max:10',
                 'email' => 'required|email',
-                // Add more validation rules as needed
             ]);
 
             if ($validator->fails()) {
@@ -64,9 +62,9 @@ class PaperController extends Controller
 
                 if ($paperSubmission) {
                     $Paper = Paper::where('author_id',$participant->id)->first();
-                    return response()->json(['data' => $Paper], 200);
+                    return response()->json(['data' => $Paper,'type'=>'existedUser'], 200);
                 } else {
-                    return response()->json(['data' => ''], 200);
+                    return response()->json(['data' => '','type'=>'newUser'], 200);
                 }
             } else {
                 $names = explode(' ', $author);
@@ -82,7 +80,7 @@ class PaperController extends Controller
 
                 $lastInsertedId = $newRecord->id;
 
-                return response()->json(['data' => $lastInsertedId], 200);
+                return response()->json(['data' => $lastInsertedId,'type'=>'createdUser'], 200);
             }
         }else{
 
@@ -108,19 +106,9 @@ class PaperController extends Controller
                 'is_accepted'=>0
             ]);
             session()->flash('success', 'Record added successfully');
-            return response()->json(['data' => route('submission.index')], 200);
+            return response()->json(['data' => route('submission.index'),'type'=>'redirect'], 200);
         }
 
-
-
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Paper $paper)
-    {
-        //
     }
 
     /**
@@ -128,7 +116,7 @@ class PaperController extends Controller
      */
     public function edit($id)
     {
-        $paper = Paper::where('id',decrypt($id))->with('authors')->first(); // Replace 'Item' with your model
+        $paper = Paper::where('id',decrypt($id))->with('authors')->first();
         if (!$paper) {
             abort(404); // Handle not found items
         }
@@ -158,10 +146,11 @@ class PaperController extends Controller
      */
     public function destroy($id)
     {
-        $record = Paper::where('id',decrypt($id));
+        $record = Paper::where('id','=',decrypt($id));
+
         $record->delete();
         session()->flash('success', 'Record deleted successfully');
-        return redirect()->route('submission.index');
+        return response()->json('', 200);
     }
 
     public function reviewer($id)

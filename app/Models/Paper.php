@@ -12,7 +12,7 @@ class Paper extends Model
 {
     use HasFactory;
 
-    protected $table = 'Paper';
+    protected $table = 'paper';
     protected $primaryKey = 'id';
     public $timestamps = false;
     public $guarded = [];

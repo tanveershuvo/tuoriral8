@@ -45,14 +45,16 @@
                         <td>{{ $paper->submissionType->venue->venue_name }}</td>
                         <td>{{ $paper->paper_review->avg('score') }}</td>
                         <td width="300px">
-                             <form method="POST" id="deleteRecord" action="{{route('submission.destroy',encrypt($paper->id))}}">
-                                @csrf
-                                @method('DELETE')
-                                 <a type="button" id="reviewer" class="btn btn-info" data-id="{{ encrypt($paper->id)}}">Reviewer</a>
-                                 <a type="button" class="btn btn-primary" href="{{ url('submission/'.encrypt($paper->id).'/edit') }}">Edit</a>
 
-                                 <button type="submit" class="btn btn-danger" onclick="deleteRecord()">Delete</button>
-                            </form>
+
+                            <a type="button" id="reviewer" class="btn btn-info" data-id="{{ encrypt($paper->id)}}">Reviewer</a>
+                            <a type="button" class="btn btn-primary"
+                               href="{{ url('submission/'.encrypt($paper->id).'/edit') }}">Edit</a>
+
+                            <a type="button" class="btn btn-danger"
+                                    onclick="deleteRecord('{{encrypt($paper->id)}}')">Delete
+                            </a>
+
                         </td>
                     </tr>
                 @endforeach

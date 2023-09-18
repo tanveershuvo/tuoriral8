@@ -1,4 +1,5 @@
 function sendAjaxRequest(requestType, url, data, successCallback, errorCallback) {
+    $('.text-danger.alert.alert-danger').remove();
     // Set the CSRF token as a default header for all AJAX requests
     $.ajaxSetup({
         headers: {
@@ -15,11 +16,15 @@ function sendAjaxRequest(requestType, url, data, successCallback, errorCallback)
         },
         error: function (xhr) {
             if (xhr.responseJSON && xhr.responseJSON.errors) {
-                // Display validation errors to the user
-                $('#error-messages').empty();
-                $.each(xhr.responseJSON.errors, function (key, value) {
+                if (xhr.status === 422) {
+                    let errors = xhr.responseJSON.errors;
+                    $.each(errors, function (field, message) {
+                        $('#' + field).after('<div class="text-danger alert alert-danger">' + message[0] + '</div>');
+                    });
+                } else {
                     $('#error-messages').append('<p>' + value + '</p>');
-                });
+                }
+
             }
         }
     });
@@ -49,38 +54,8 @@ $(document).on("click", "#reviewer", function () {
     });
 });
 
+
 $(document).ready(function () {
-    $("#submissionForm").submit(function (event) {
-        event.preventDefault();
-        let formData = $(this).serialize();
-
-        sendAjaxRequest('POST', '/submission', formData, function (response) {
-            console.log(response.data)
-            if (response.data === 'http://127.0.0.1:8000/submission') {
-                window.location.href = response.data;
-            } else {
-
-                if (typeof response.data === "number") {
-                    $('#message').addClass('text-primary').text('Do you want to continue to submit the paper?')
-                    $("#next2").show();
-
-                } else if (typeof response.data === "object") {
-                    $('#message').addClass('text-info').text('Author already submitted a paper');
-                    $("#title").val(response.data.paper_title).prop('readonly', true);
-                    $("#abstract").val(response.data.abstract).prop('readonly', true);
-                    $("#submission_type").val(response.data.submission_type_id).prop('readonly', true);
-                    $("#authorId").val(response.data.author_id);
-                    $("#show_paper").show();
-                } else {
-                    $('#message').addClass('text-primary').text(' You have already provided the author information. Do you want to continue to submit the paper?');
-                    $("#next2").show();
-                }
-                $("#next").hide();
-                $(".checkData").prop("readonly", true);
-            }
-
-        });
-    });
 
     $("#show_paper").on("click", function () {
         $("#afterCheckInput").show();
@@ -95,9 +70,10 @@ $(document).ready(function () {
         $("#next2").hide();
         $('#message').text('');
     });
-});
+})
+;
 
-function deleteRecord() {
+function deleteRecord(paperId) {
     event.preventDefault()
     Swal.fire({
         title: 'Are you sure?',
@@ -107,9 +83,29 @@ function deleteRecord() {
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
         confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $("#deleteRecord").submit()
+    }).then((willDelete) => {
+        if (willDelete) {
+            // Get the CSRF token from the meta tag
+            var csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+// Send the AJAX request with the CSRF token in the headers
+            $.ajax({
+                url: "submission/" + paperId,
+                type: "DELETE", // Use the appropriate HTTP method
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                success: function (data) {
+                    window.location.href = "submission";
+                },
+                error: function (data) {
+                    swal("Oops! Something went wrong.", {
+                        icon: "error",
+                    });
+                }
+            });
         }
-    })
+    });
+
+
 }
